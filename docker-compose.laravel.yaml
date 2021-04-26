@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  laravel:
+    build:
+      context: ./laravel
+      dockerfile: Dockerfile.prod
+    image: angolarti/laravel:prod
+    container_name: laravel
+    networks:
+      - pluralsis
+  
+  serverproxy:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.prod
+    image: angolarti/nginx:prod
+    container_name: serverproxy
+    networks:
+      - pluralsis
+    ports:
+      - '8080:80'
+
+networks:
+  pluralsis:
+    driver: bridge

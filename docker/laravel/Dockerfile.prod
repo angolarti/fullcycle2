@@ -1,0 +1,25 @@
+FROM php:7.4-cli AS Builder
+
+WORKDIR /var/www
+
+RUN apt update && \
+    apt install git libzip-dev unzip -y && \
+    docker-php-ext-install zip
+
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
+    php composer-setup.php && \
+    php -r "unlink('composer-setup.php');" && \
+    mv composer.phar /usr/local/bin/composer
+
+RUN composer create-project --prefer-dist laravel/laravel laravel
+
+# Stage Prod
+FROM php:7.4-fpm-alpine
+WORKDIR /var/www
+RUN rm -rf /var/www/
+COPY --from=Builder /var/www/laravel .
+RUN ln -s public html
+RUN chown www-data:www-data -R /var/www/
+
+EXPOSE 9000
+CMD [ "php-fpm" ]
